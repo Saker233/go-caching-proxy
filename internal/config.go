@@ -11,14 +11,17 @@ import (
 )
 
 type Config struct {
-	Port   int
-	Origin string
+	Port       int
+	Origin     string
+	ClearCache bool
 }
 
 func HandleCMD() Config {
 	var port int
 	var origin string
+	var clear bool
 
+	flag.BoolVar(&clear, "clear-cache", false, "Clear Cache")
 	flag.IntVar(&port, "port", 8080, "Port to listen on")
 	flag.StringVar(&origin, "origin", "", "Origin server URL")
 	flag.Parse()
@@ -26,6 +29,7 @@ func HandleCMD() Config {
 	return Config{
 		Port:   port,
 		Origin: origin,
+		ClearCache: clear,
 	}
 }
 
@@ -63,7 +67,7 @@ func proxy(c *gin.Context, config Config) {
 		return
 	}
 	// Store in redis
-	err = rdb.Set(ctx, config.Origin, body, 0).Err()
+	err = Rdb.Set(Ctx, config.Origin, body, 0).Err()
 	if err != nil {
 		log.Fatal(err)
 	}

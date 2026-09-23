@@ -7,7 +7,7 @@ import (
 )
 
 func checkCache(origin string) ([]byte, bool) {
-	body, err := rdb.Get(ctx, origin).Bytes()
+	body, err := Rdb.Get(Ctx, origin).Bytes()
 
 	if err == redis.Nil {
 		return nil, false
