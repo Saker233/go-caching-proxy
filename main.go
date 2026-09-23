@@ -6,10 +6,10 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 func main() {
-
+	internal.RedisClient()
 	godotenv.Load("app,env")
 	config := internal.HandleCMD()
 	internal.SetupServer(config)
-
+	
 
 }

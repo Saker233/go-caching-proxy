@@ -3,6 +3,7 @@ package internal
 import (
 	"flag"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -40,7 +41,15 @@ func proxy(c *gin.Context, config Config) {
 
 	// we need to setup redis here first and make GET if we found it send it back to the user and make header X-cache HIT
 	// if we didnt found it redirect to the original URL and send back the request from there, X-Cache MISS
+	body, found := checkCache(config.Origin)
 
+	if found {
+		// HIT
+		c.Header("X-Cache", "HIT")
+		c.Data(http.StatusOK, "application/json", body)
+		return
+	}
+	// MISS
 	resp, err := http.Get(config.Origin)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, errRespose(err))
@@ -48,14 +57,18 @@ func proxy(c *gin.Context, config Config) {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, errRespose(err))
+		c.JSON(http.StatusInternalServerError, errRespose(err))
 		return
+	}
+	// Store in redis
+	err = rdb.Set(ctx, config.Origin, body, 0).Err()
+	if err != nil {
+		log.Fatal(err)
 	}
 	c.Header("X-Cache", "MISS")
 	c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
-
 }
 
 func errRespose(err error) gin.H {
