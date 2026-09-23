@@ -9,7 +9,7 @@ func main() {
 
 	godotenv.Load("app,env")
 	config := internal.HandleCMD()
-	internal.SetupRouter(config)
+	internal.SetupServer(config)
 
 
 }

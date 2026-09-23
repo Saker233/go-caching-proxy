@@ -2,6 +2,7 @@ package internal
 
 import (
 	"flag"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -26,8 +27,15 @@ func HandleCMD() Config {
 	}
 }
 
-func SetupRouter(config Config) {
+func SetupServer(config Config) {
 	r := gin.Default()
-
+	r.GET("/*endpoint", func(c *gin.Context) {
+		proxy(c, config)
+	})
 	r.Run(":" + strconv.Itoa(config.Port))
+}
+
+func proxy(c *gin.Context, config Config) {
+
+	c.Redirect(http.StatusFound, config.Origin)
 }
