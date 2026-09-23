@@ -1,13 +1,14 @@
 package main
 
-import "github.com/gin-gonic/gin"
-
-
-
+import (
+	"github.com/Saker233/go-caching-proxy/internal"
+	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
+)
 func main() {
-	r :=  gin.Default()
+
+	godotenv.Load("app,env")
+	internal.SetupRouter()
 
 
-
-	_ = r.Run(":8000")
 }
