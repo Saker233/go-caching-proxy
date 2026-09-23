@@ -2,6 +2,7 @@ package internal
 
 import (
 	"flag"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -37,5 +38,28 @@ func SetupServer(config Config) {
 
 func proxy(c *gin.Context, config Config) {
 
-	c.Redirect(http.StatusFound, config.Origin)
+	// we need to setup redis here first and make GET if we found it send it back to the user and make header X-cache HIT
+	// if we didnt found it redirect to the original URL and send back the request from there, X-Cache MISS
+
+	resp, err := http.Get(config.Origin)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errRespose(err))
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, errRespose(err))
+		return
+	}
+	c.Header("X-Cache", "MISS")
+	c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
+
+}
+
+func errRespose(err error) gin.H {
+	return gin.H{
+		"error": err.Error(),
+	}
 }
