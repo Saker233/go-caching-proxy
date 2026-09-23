@@ -8,7 +8,8 @@ import (
 func main() {
 
 	godotenv.Load("app,env")
-	internal.SetupRouter()
+	config := internal.HandleCMD()
+	internal.SetupRouter(config)
 
 
 }
